@@ -8,18 +8,24 @@ version = "0.0.1"
 description = "A small rsync wrapper with a rich TUI and playful cowsay banners."
 readme = "README.md"
 requires-python = ">=3.11"
-license = { text = "GPL-3.0-or-later" }
-authors = [ { name = "(your name)" } ]
+license = "GPL-3.0-or-later"
+authors = [ { name = "Leo Postovoit @postphotos" } ]
 classifiers = [
   "Programming Language :: Python :: 3",
-  "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
   "Operating System :: OS Independent",
 ]
+license-files = ["LICENSE"]
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.package-data]
+"pcopy" = ["*.json", "cows/*.cow"]
 
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["pcopy*"]
 
 [project.urls]
-"Source" = "https://example.com/your-repo"
-"Homepage" = "https://example.com/your-project"
+"Source" = "https://github.com/postphotos/purrfectcopy"
+"Homepage" = "https://leopostovoit.com"

@@ -1,0 +1,76 @@
+{
+    "quotes": [
+        "Preparing to pounce on your files... ฅ^•ﻌ•^ฅ",
+        "Sharpening claws for data transfer... ᓚᘏᗢ",
+        "Herding your files like little kittens... (=^-ω-^=)",
+        "Don't worry, your files are in good paws. 🐾",
+        "Chasing digital mice for you... (≚ᄌ≚)ℒℴѵℯ❤",
+        "Purring along as we sync... (＾• ω •＾)"
+    ],
+    "confirmations": [
+        "Ready to let the kittens out?",
+        "Should the kittens start their backup adventure?",
+        "Is it time for the kittens to pounce on your files?",
+        "Unleash the backup kittens?"
+    ],
+    "cancellations": [
+        "Backup cancelled. The kittens are sad. 😿",
+        "Backup cancelled. The kittens wandered off. 🐾",
+        "Backup cancelled. The kittens are taking a nap. 😴"
+    ],
+    "goodbyes": [
+        "Goodbye! May your files be ever-safe and your lap always warm. ᓚᘏᗢ",
+        "Goodbye! The kittens wish you a purrfect day. 🐾",
+        "Goodbye! Stay pawsitive and backed up! 🐾"
+    ],
+    "stages": {
+        "stage1": {
+            "animals": [
+                "kitty",
+                "hellokitty",
+                "sheep",
+                "datakitten.cow"
+            ],
+            "quotes": [
+                "Don't be sheepish, let's get this data herd started.",
+                "Making your data supercute and super safe.",
+                "Meowving data to a safe space."
+            ]
+        },
+        "stage2": {
+            "animals": [
+                "dragon",
+                "stegosaurus",
+                "vader",
+                "moofasa",
+                "rsyncat.cow"
+            ],
+            "quotes": [
+                "I find your lack of backups disturbing.",
+                "This backup is anything but prehistoric.",
+                "Unleashing the dragon's fire on data loss!"
+            ]
+        },
+        "stage3": {
+            "animals": [
+                "beavis.zen",
+                "llama",
+                "ghostbusters",
+                "flaming-sheep",
+                "backupcat.cow"
+            ],
+            "quotes": [
+                "No drama, just backed-up llama data.",
+                "Who you gonna call? The Paw-busters!",
+                "This backup rules! Huh huh huh."
+            ]
+        }
+    },
+    "cat_facts": [
+        "Cats sleep for about 12–16 hours a day.",
+        "A cat's nose has a unique pattern like a human fingerprint.",
+        "Cats can rotate their ears 180 degrees.",
+        "Adult cats are lactose intolerant more often than not.",
+        "Cats have five toes on their front paws and four on their back paws."
+    ]
+}

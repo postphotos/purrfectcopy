@@ -6,7 +6,10 @@ from pathlib import Path
 from typing import Any, Dict, List
 
 HERE = Path(__file__).resolve().parent
-SLOGANS_PATH = HERE.parent / 'slogans.json'
+# Prefer package-local slogans.json (installed with package data); fallback to repo-level slogans.json
+SLOGANS_PATH = HERE / 'slogans.json'
+if not SLOGANS_PATH.exists():
+    SLOGANS_PATH = HERE.parent / 'slogans.json'
 
 
 def _load_slogans() -> Dict[str, Any]:
