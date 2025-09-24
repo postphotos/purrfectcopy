@@ -79,6 +79,16 @@ The GitHub Actions workflow utilizes the same Docker image and runs these three 
 * The real-run test may execute `rsync` within the container, which can modify the container's local `/data` directory. It will not affect your host machine unless you have explicitly mounted host volumes.
 * The `Dockerfile` currently fetches external assets during the build process. For more deterministic CI builds, consider replacing these with static test assets in the future.
 
+### Packaging / wheel verification note
+
+We include an integration test that builds a wheel and inspects it to ensure package data (for example `pcopy/cows/*.cow`) are bundled correctly. The comprehensive test script `run-all-tests.sh` will attempt to bootstrap `pip` and install the `build` package automatically when needed so the wheel-inspection test can run.
+
+If your environment has restricted network access or very small available disk space, the bootstrapping step may fail — in that case run the script on a machine with network access or install `build` manually into your venv with:
+
+```bash
+python -m pip install --upgrade --no-cache-dir build
+```
+
 ### Running the single container integration test
 
 If you only want to run the specific container integration test that verifies `setup.sh` and `pcopy do main-backup --dry-run`, use:

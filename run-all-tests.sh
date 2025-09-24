@@ -15,26 +15,52 @@ uv run pyright pcopy
 echo "Ensuring 'build' package is available for wheel tests..."
 if ! python -c "import build" >/dev/null 2>&1; then
 	echo "Installing build package (using --no-cache-dir to reduce disk usage)..."
-	# Ensure 'pip' bootstrap exists in this Python environment. Some venvs
-	# are created without pip available; try to bootstrap it with ensurepip.
+	# Ensure 'pip' is available. If `python -m pip` is missing we prefer to use
+	# an existing `pip3`/`pip` on PATH (e.g. from pyenv shims) before attempting
+	# to bootstrap via ensurepip. This helps on developer machines where the
+	# active `python` may not have pip but the user has pip3 available.
+	BUILD_INSTALLED=false
 	if ! python -m pip --version >/dev/null 2>&1; then
-		echo "pip not found in this Python environment; attempting to bootstrap with ensurepip..."
-		if python -m ensurepip --upgrade >/dev/null 2>&1; then
-			echo "Bootstrapped pip via ensurepip"
-		else
-			echo "Failed to bootstrap pip with ensurepip. Please ensure pip is available in your environment." >&2
-			echo "You can try: python -m ensurepip --upgrade" >&2
-			exit 1
+		echo "python -m pip not available in this Python; checking for pip3/pip on PATH..."
+		PIP_CMD=""
+		if command -v pip3 >/dev/null 2>&1; then
+			PIP_CMD="pip3"
+		elif command -v pip >/dev/null 2>&1; then
+			PIP_CMD="pip"
+		fi
+
+		if [ -n "$PIP_CMD" ]; then
+			echo "Found '$PIP_CMD' on PATH; trying to use it to install 'build'..."
+			if "$PIP_CMD" install --upgrade --no-cache-dir build; then
+				BUILD_INSTALLED=true
+				echo "Installed 'build' via $PIP_CMD"
+			else
+				echo "Failed to install 'build' via $PIP_CMD; will try ensurepip..." >&2
+			fi
+		fi
+
+		if [ "$BUILD_INSTALLED" != "true" ]; then
+			echo "Attempting to bootstrap pip with ensurepip..."
+			if python -m ensurepip --upgrade >/dev/null 2>&1; then
+				echo "Bootstrapped pip via ensurepip"
+			else
+				echo "Failed to bootstrap pip with ensurepip. Please ensure pip is available in your environment." >&2
+				echo "You can try: python -m ensurepip --upgrade" >&2
+				exit 1
+			fi
 		fi
 	fi
 
-	if ! python -m pip install --upgrade --no-cache-dir build; then
-		echo "Failed to install 'build'. This commonly happens when your system is low on disk space." >&2
-		echo "Try freeing some space or manually installing 'build' in your venv with:" >&2
-		echo "python -m pip install --upgrade --no-cache-dir build" >&2
-		echo "If you have aggressive caching or a small /tmp, consider setting PIP_CACHE_DIR to a directory on a drive with space." >&2
-		echo "Example: PIP_CACHE_DIR=~/.cache/pip python -m pip install --upgrade --no-cache-dir build" >&2
-		exit 1
+	# Finally, ensure 'build' is installed using python -m pip if not already.
+	if [ "$BUILD_INSTALLED" != "true" ]; then
+		if ! python -m pip install --upgrade --no-cache-dir build; then
+			echo "Failed to install 'build' with python -m pip. This commonly happens when your system is low on disk space." >&2
+			echo "Try freeing some space or manually installing 'build' in your venv with:" >&2
+			echo "python -m pip install --upgrade --no-cache-dir build" >&2
+			echo "If you have aggressive caching or a small /tmp, consider setting PIP_CACHE_DIR to a directory on a drive with space." >&2
+			echo "Example: PIP_CACHE_DIR=~/.cache/pip python -m pip install --upgrade --no-cache-dir build" >&2
+			exit 1
+		fi
 	fi
 fi
 
