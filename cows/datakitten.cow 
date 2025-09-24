@@ -1,0 +1,16 @@
+##
+## A kitten protecting your precious data.
+##
+$the_cow = <<EOC;
+   $thoughts
+    $thoughts
+      /\\_/\\
+     ( o.o )
+      > ^ <
+     /  |  \\
+    /   |   \\
+   /    |    \\
+  +-----------+
+  |  D A T A  |
+  +-----------+
+EOC
