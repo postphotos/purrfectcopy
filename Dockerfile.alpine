@@ -1,0 +1,41 @@
+FROM alpine:latest
+
+RUN apk add --no-cache python3 py3-pip rsync curl bash
+RUN apk add --no-cache su-exec shadow
+
+# Install uv (astral) non-interactively
+WORKDIR /app
+COPY . /app
+RUN adduser -D tester || true
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+# Create a virtualenv and install Python deps into it (avoid modifying system Python)
+RUN python3 -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+RUN /opt/venv/bin/pip install --no-cache-dir --upgrade pip
+RUN /opt/venv/bin/pip install --no-cache-dir cowsay uv
+RUN /opt/venv/bin/pip install --no-cache-dir -r requirements.txt
+
+# Prepare some sample files to exercise the smoke-test
+RUN mkdir -p /data/source /data/source/cat-pix /data/dest
+RUN echo "This is a test file. Fill me with cat memes." > /data/source/test-cat-file1.txt
+RUN echo "Another test file. Fill me with cat-cow memes." > /data/source/test-cow-file2.txt
+RUN echo "Yet another test file. No cow memes, please." > /data/source/test-cow-file3.txt
+
+# test restrictive permissions
+RUN chmod -R a+r /data/source/test-cat-file1.txt
+RUN chmod -R 111 /data/source/test-cow-file2.txt || true
+
+# Fetch some cat images (best-effort; ignore failures)
+RUN set -eux; \
+    for i in $(seq 1 5); do \
+    curl -s "https://api.thecatapi.com/v1/images/search" | awk -F'"' '{print $10}' | xargs -I{} sh -c 'curl -s -o /data/source/cat-pix/cat_{}.jpg {} || true'; \
+    done || true
+
+# we're skipping Docker tests since we're already in a container
+RUN chmod +x run-all-tests.sh
+RUN ./run-all-tests.sh --no-docker 
+
+# Entrypoint wrapper supports running as root (default) or as non-root when RUN_AS=nonroot
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

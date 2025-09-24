@@ -22,9 +22,21 @@ jobs:
       - name: Install Python deps
         run: uv pip install -r requirements.txt
       - name: Run Pyright
-        run: uv run pyright app.py || true
-      - name: Run tests with coverage
-        run: uv run pytest --cov=app --cov-report=term-missing
+        run: uv run pyright pcopy
+      - name: Run tests with coverage (fail if coverage < 100%)
+        run: uv run pytest --cov=pcopy --cov-report=term-missing --cov-fail-under=100
+      - name: Build Alpine smoke-test container
+        run: docker build -f Dockerfile.alpine -t pcopy-smoketest:latest .
+
+      - name: "Smoke-test: dry-run as root"
+        run: docker run --rm pcopy-smoketest:latest --dry-run
+
+      - name: "Smoke-test: real-run as root"
+        run: docker run --rm pcopy-smoketest:latest
+
+      - name: "Smoke-test: dry-run as non-root"
+        run: |
+          docker run --rm -e RUN_AS=nonroot pcopy-smoketest:latest --dry-run
       - name: Upload coverage
         uses: codecov/codecov-action@v4
         with:

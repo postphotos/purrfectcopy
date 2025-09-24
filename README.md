@@ -2,6 +2,8 @@
 
 A delightful, kitten-powered `rsync` backup script with a rich, real-time Terminal User Interface (TUI) built in Python.
 
+Release: v1.0.0 (2025-09-23)
+
 ## ✨ Features
 
 - **Rich TUI Dashboard:** A beautiful, flicker-free dashboard that displays live backup progress.
@@ -15,7 +17,7 @@ A delightful, kitten-powered `rsync` backup script with a rich, real-time Termin
 
 Yeah. The goal is to spark joy. Sometimes it's good to be [serious, not solemn.](https://www.youtube.com/watch?v=atn22-bmTPU) I hope you enjoy it, too!
 
-If you prefer to stare at confusing numbers and hoping you got it all right, that's fine, but it's not for all of us.
+While this python module library "just" wraps rsync, if you prefer to stare at confusing numbers and hoping you got it all right, that's fine, but it's not for all of us. Some of us want typing, code coverage and predictability. (And cowsay + cat slogans.)
 
 Because remembering `rsync -havx--infoprogress2 & afewothers maybe one dash or --maybenone --dry-run-maybe?` hasn't gotten any easier after using rsync for over a decade, but it's still the best and there's always room for improvement.
 
@@ -116,6 +118,44 @@ You can pass flags to the launcher, and they will be forwarded to the Python app
 
 - **Backup Paths:** To change the source or destination directories, edit the "CUSTOMIZE YOUR PATHS HERE" section at the top of `app.py`.
 - **Slogans & Characters:** To add or change any of the fun text, edit the `slogans.json` file. You can even add new `.cow` files to the `cows/` directory and reference them in the JSON file!
+
+## Docker-based smoke-test
+
+We provide `Dockerfile.alpine` as a lightweight smoke-test image that installs system dependencies (rsync, cowsay), prepares a small sample source tree, and runs `app.py` in `--dry-run` mode. This is used by CI to validate the runtime behavior in a container similar to minimal Linux systems.
+
+To build and run locally:
+
+```bash
+docker build -f Dockerfile.alpine -t pcopy-smoketest:latest .
+docker run --rm pcopy-smoketest:latest
+```
+
+The smoke-test runs the app in dry-run mode by default so it won't modify your host files.
+
+## Sample output
+
+Below is an example of the TUI during a dry-run showing a dual-column view (Source / Destination)
+and some playful "cat meme" cowsay messages. This is illustrative — exact output will vary
+with terminal size and progress.
+
+```text
+Purrfect Backup — Dry Run
+
+Source: /home/user/photos            | Destination: /backup/photos
+---------------------------------------------------------------
+Files:  12/120                        | Transferred:  0.0B
+Speed:  0.0B/s                       | Elapsed: 00:00
+
+[  5% ] Copying: 2025/08/01_cat1.jpg  | [  5% ] -> /backup/photos/2025/08/01_cat1.jpg
+[  5% ] Copying: 2025/08/02_cat2.jpg  | [  5% ] -> /backup/photos/2025/08/02_cat2.jpg
+
+    ,_     "Backup complete"
+ ( o.o)  < Meowtain of memes incoming
+    > ^
+
+Progress: [#####....................................] 5%
+
+```
 
 ## License
 
