@@ -2,9 +2,6 @@
 
 A delightful, kitten-powered `rsync` backup script with a rich, real-time Terminal User Interface (TUI) built in Python.
 
-![demo](https://user-images.githubusercontent.com/.../demo.gif)  
-*(A GIF demonstrating the TUI in action would go here)*
-
 ## ✨ Features
 
 - **Rich TUI Dashboard:** A beautiful, flicker-free dashboard that displays live backup progress.
@@ -14,41 +11,87 @@ A delightful, kitten-powered `rsync` backup script with a rich, real-time Termin
 - **Highly Configurable:** All slogans, quotes, and paths are easily editable in `slogans.json` and `app.py`.
 - **Modern Python Tooling:** Uses `uv` for fast and efficient dependency management.
 
+## Hey, hey wait, isn't this just RSYNC? Cowsay? With some other ridiculous goodies?
+
+Yeah. The goal is to spark joy. Sometimes it's good to be [serious, not solemn.](https://www.youtube.com/watch?v=atn22-bmTPU) I hope you enjoy it, too!
+
+If you prefer to stare at confusing numbers and hoping you got it all right, that's fine, but it's not for all of us.
+
+Because remembering `rsync -havx--infoprogress2 & afewothers maybe one dash or --maybenone --dry-run-maybe?` hasn't gotten any easier after using rsync for over a decade, but it's still the best and there's always room for improvement.
+
+It's our goal to keep this python application at 100% coverage. We also provide the task runner - `run-backup.sh` - to perform your backup work. We also provide a local `setup.sh` to add an alias - `pcopy` - to your `.bashrc`/`.zshrc`.
+
+If you often find yourself scuttling data and are sick of the cat-free, confusing syntax (like the rest of us are!) `pcopy` functions as a fancy alias for `rsync` defaults: A great nice-to-have and makes menial file maintence just a little less awful.
+
+## 🛠️ Setup
+
+Run `./setup.sh` to install and configure Purrfect Backup. The script will:
+
+- Ensure `uv` is available (and install it via pip if needed).
+- Install the Python dependencies from `requirements.txt`.
+- Add a `pcopy` helper function to your shell configuration (`~/.bashrc` or `~/.zshrc`) so you can use `pcopy` from the shell.
+
+After running the script you can either restart your shell or run `source ~/.zshrc` (or `source ~/.bashrc`) to pick up the new `pcopy` helper.
+
+### Using pcopy (syntax)
+
+- `pcopy source dest` — Run a backup using the given source and destination paths.
+- `pcopy do main-backup` or `pcopy main-backup` — Run the "main-backup" configuration defined in your settings file (`~/.pcopy-main-backup.yml`).
+
+### Local settings file
+
+Create `~/.pcopy-main-backup.yml` to declare a named backup and optional rsync overrides. Example:
+
+```yaml
+main-backup:
+    source: "/path/to/source"
+    dest: "/path/to/destination"
+rsync_options:
+    - "--verbose"
+    - "--progress"
+```
+
+When `pcopy` is invoked with `do main-backup` (or `main-backup`), the app will read this file and use the configured `source` and `dest` and apply any `rsync_options` listed.
+
 ## 📦 Installation
 
-1.  **Clone the Repository:**
+1. **Clone the Repository:**
+
     ```bash
     git clone <your-repo-url>
     cd purrfect-backup
     ```
 
-2.  **Install System Dependencies:**
-    You will need `rsync`, `cowsay`, and a Python interpreter.
+2. **Install System Dependencies:**
+    You will need `rsync`, `cowsay`, and a Python interpreter. It's suggested you use an environment manager like [uv](https://docs.astral.sh/uv/getting-started/installation/), which is what our setup uses.
+
     ```bash
     # On macOS with Homebrew
     brew install rsync cowsay
     ```
 
-3.  **Install Python Tooling (`uv`):**
+3. **Install Python Tooling (`uv`):**
     This project uses `uv` as a modern, high-speed replacement for `pip` and `venv`.
+
     ```bash
     pip install uv
     ```
 
-4.  **Install Python Dependencies:**
+4. **Install Python Dependencies:**
     The launcher script will do this for you, but you can also run it manually to set up the environment.
+
     ```bash
     uv install -r requirements.txt
     ```
 
 ## 🚀 Usage
 
-The `backup.sh` script is the main entry point. It will handle permissions and run the Python application for you.
+The `run-backup.sh` script is the main entry point. It will handle permissions and run the Python application for you.
 
 **To run a backup:**
 
 ```bash
-./backup.sh
+./run-backup.sh
 ```
 
 The script will automatically request `sudo` privileges.
@@ -57,16 +100,23 @@ The script will automatically request `sudo` privileges.
 
 You can pass flags to the launcher, and they will be forwarded to the Python application.
 
--   **Dry Run (Simulate):** See what files would be transferred without making any changes.
+- **Dry Run (Simulate):** See what files would be transferred without making any changes.
+
     ```bash
-    ./backup.sh --dry-run
+    ./run-backup.sh --dry-run
     ```
--   **Show Command:** Print the exact `rsync` command that would be executed and exit. This is great for debugging.
+
+- **Show Command:** Print the exact `rsync` command that would be executed and exit. This is great for debugging.
+
     ```bash
-    ./backup.sh --dry-run-command
+    ./run-backup.sh --dry-run-command
     ```
 
 ## 🔧 Configuration
 
--   **Backup Paths:** To change the source or destination directories, edit the "CUSTOMIZE YOUR PATHS HERE" section at the top of `app.py`.
--   **Slogans & Characters:** To add or change any of the fun text, edit the `slogans.json` file. You can even add new `.cow` files to the `cows/` directory and reference them in the JSON file!
+- **Backup Paths:** To change the source or destination directories, edit the "CUSTOMIZE YOUR PATHS HERE" section at the top of `app.py`.
+- **Slogans & Characters:** To add or change any of the fun text, edit the `slogans.json` file. You can even add new `.cow` files to the `cows/` directory and reference them in the JSON file!
+
+## License
+
+This is released under GPL 3.0 etc

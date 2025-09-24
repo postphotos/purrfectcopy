@@ -1,1 +1,5 @@
-rich>=13.7.0
+rich>=14.1.0
+pytest>=8.4.2
+pytest-cov>=7.0.0
+pyright>=1.1.405
+pyyaml>=6.0.2

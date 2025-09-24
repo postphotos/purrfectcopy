@@ -29,7 +29,7 @@
                 "kitty",
                 "hellokitty",
                 "sheep",
-                "cows/datakitten.cow"
+                "datakitten.cow"
             ],
             "quotes": [
                 "Don't be sheepish, let's get this data herd started.",
@@ -43,7 +43,7 @@
                 "stegosaurus",
                 "vader",
                 "moofasa",
-                "cows/rsyncat.cow"
+                "rsyncat.cow"
             ],
             "quotes": [
                 "I find your lack of backups disturbing.",
@@ -56,7 +56,8 @@
                 "beavis.zen",
                 "llama",
                 "ghostbusters",
-                "flaming-sheep"
+                "flaming-sheep",
+                "backupcat.cow"
             ],
             "quotes": [
                 "No drama, just backed-up llama data.",
@@ -64,5 +65,40 @@
                 "This backup rules! Huh huh huh."
             ]
         }
-    }
+    },
+    "cat_facts": [
+        "Cats sleep for about 12–16 hours a day.",
+        "A cat's nose has a unique pattern like a human fingerprint.",
+        "Cats can rotate their ears 180 degrees.",
+        "Adult cats are lactose intolerant more often than not.",
+        "Cats have five toes on their front paws and four on their back paws.",
+        "A group of kittens is called a kindle.",
+        "Cats use their whiskers to judge openings and sense movement.",
+        "A cat's purr can help promote bone healing.",
+        "Most cats don't like water but some breeds enjoy swimming.",
+        "A cat's brain is biologically similar to a human brain.",
+        "Cats can make over 100 different vocal sounds.",
+        "Cats spend a large portion of grooming to keep cool and clean.",
+        "The oldest pet cat on record lived to 38 years.",
+        "Cats can jump up to six times their body length.",
+        "A cat's fur patterns are determined genetically like fingerprints.",
+        "Cats sleep curled to preserve body heat and protect vital organs.",
+        "Some cats are ambidextrous, others show paw preference.",
+        "Cats can't taste sweet flavors due to a missing receptor.",
+        "A cat's back is extremely flexible thanks to loosely connected vertebrae.",
+        "Cats blink slowly to show trust and affection.",
+        "Cats can hear ultrasonic sounds made by rodents.",
+        "Domestic cats are descended from African wildcats.",
+        "A cat's tail helps with balance and communication.",
+        "Cats often sleep with their paws over their faces to block light.",
+        "Cats may knead when content — a leftover kitten behavior.",
+        "Cats can run up to 30 miles per hour in short bursts.",
+        "Many cats prefer vertical spaces for safety and observation.",
+        "Cats have a third eyelid called a haw that protects the eye.",
+        "A cat's sense of smell is about 14 times stronger than a human's.",
+        "Polydactyl cats have extra toes due to a dominant genetic trait.",
+        "Cats can form strong bonds with humans and other pets.",
+        "Scratching is a healthy behavior to sharpen claws and mark territory.",
+        "Cats often prefer routine and can be stressed by abrupt changes."
+    ]
 }

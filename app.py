@@ -1,3 +1,5 @@
+# app.py
+
 import argparse
 import json
 import os
@@ -14,6 +16,7 @@ from rich.panel import Panel
 from rich.progress import Progress, BarColumn, TextColumn
 from rich.table import Table
 from rich.text import Text
+import yaml
 
 # --- 🐾 Configuration 🐾 ---
 try:
@@ -25,48 +28,32 @@ except FileNotFoundError:
 
 USER_HOME = os.path.expanduser(f"~{os.environ.get('SUDO_USER', os.environ.get('USER', ''))}")
 
+# Load settings from ~/.pcopy-main-backup.yml if exists
+SETTINGS_FILE = os.path.join(USER_HOME, ".pcopy-main-backup.yml")
+SETTINGS = {}
+if os.path.exists(SETTINGS_FILE):
+    try:
+        with open(SETTINGS_FILE, "r") as f:
+            SETTINGS = yaml.safe_load(f) or {}
+    except Exception as e:
+        print(f"Warning: Could not load settings from {SETTINGS_FILE}: {e}")
+
 SOURCE_DIR = os.path.join(USER_HOME, "Documents/Desktop/")
 DEST_VOLUME = "/Volumes/nelops-node"
 DEST_DIR = os.path.join(DEST_VOLUME, "postphotos-bak/Documents/Desktop/")
 EXCLUDE_FILE = os.path.join(USER_HOME, ".rsync_excludes.txt")
 
+# Override with settings if main-backup
+if "main-backup" in SETTINGS:
+    main_backup = SETTINGS["main-backup"]
+    if "source" in main_backup:
+        SOURCE_DIR = main_backup["source"]
+    if "dest" in main_backup:
+        DEST_DIR = main_backup["dest"]
+
 # If the terminal is tall enough we will mix in short cat facts with the cowsay quotes.
 # 33 lightweight, original cat facts to display when the console height > 45 lines.
-CAT_FACTS = [
-    "Cats sleep for about 12–16 hours a day.",
-    "A cat’s nose has a unique pattern like a human fingerprint.",
-    "Cats can rotate their ears 180 degrees.",
-    "Adult cats are lactose intolerant more often than not.",
-    "Cats have five toes on their front paws and four on their back paws.",
-    "A group of kittens is called a kindle.",
-    "Cats use their whiskers to judge openings and sense movement.",
-    "A cat’s purr can help promote bone healing.",
-    "Most cats don't like water but some breeds enjoy swimming.",
-    "A cat’s brain is biologically similar to a human brain.",
-    "Cats can make over 100 different vocal sounds.",
-    "Cats spend a large portion of grooming to keep cool and clean.",
-    "The oldest pet cat on record lived to 38 years.",
-    "Cats can jump up to six times their body length.",
-    "A cat’s fur patterns are determined genetically like fingerprints.",
-    "Cats sleep curled to preserve body heat and protect vital organs.",
-    "Some cats are ambidextrous, others show paw preference.",
-    "Cats can’t taste sweet flavors due to a missing receptor.",
-    "A cat’s back is extremely flexible thanks to loosely connected vertebrae.",
-    "Cats blink slowly to show trust and affection.",
-    "Cats can hear ultrasonic sounds made by rodents.",
-    "Domestic cats are descended from African wildcats.",
-    "A cat’s tail helps with balance and communication.",
-    "Cats often sleep with their paws over their faces to block light.",
-    "Cats may knead when content — a leftover kitten behavior.",
-    "Cats can run up to 30 miles per hour in short bursts.",
-    "Many cats prefer vertical spaces for safety and observation.",
-    "Cats have a third eyelid called a haw that protects the eye.",
-    "A cat’s sense of smell is about 14 times stronger than a human’s.",
-    "Polydactyl cats have extra toes due to a dominant genetic trait.",
-    "Cats can form strong bonds with humans and other pets.",
-    "Scratching is a healthy behavior to sharpen claws and mark territory.",
-    "Cats often prefer routine and can be stressed by abrupt changes."
-]
+CAT_FACTS = SLOGANS.get("cat_facts", [])
 # --- End of Configuration ---
 
 BACKUP_VERSIONS_DIR = os.path.join(DEST_DIR, "..", f"_backup_versions/{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}")
@@ -131,18 +118,30 @@ class BackupDashboard:
         """Generates or returns cached cowsay art. Keep same art for cow_hold_seconds."""
         now = time.time()
         if self._cached_cow_art and (now - self._last_cow_change) < self.cow_hold_seconds:
-            return self._cached_cow_art
+            art = self._cached_cow_art
+        else:
+            try:
+                if os.path.exists(os.path.join(COW_PATH, self.cow_character)):
+                    cowfile_path = os.path.join(COW_PATH, self.cow_character)
+                else:
+                    cowfile_path = self.cow_character
+                cmd = ["cowsay", "-f", cowfile_path, f"({self.progress}%) {self.cow_quote}"]
+                result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+                art = result.stdout
+            except (subprocess.CalledProcessError, FileNotFoundError):
+                art = f"({self.progress}%) {self.cow_quote}"
+            self._cached_cow_art = art
+            self._last_cow_change = now
 
         try:
-            cowfile_path = os.path.join(COW_PATH, self.cow_character) if "/" in self.cow_character else self.cow_character
-            cmd = ["cowsay", "-f", cowfile_path, f"({self.progress}%) {self.cow_quote}"]
-            result = subprocess.run(cmd, capture_output=True, text=True, check=True)
-            art = result.stdout
-        except (subprocess.CalledProcessError, FileNotFoundError):
-            art = f"({self.progress}%) {self.cow_quote}"
+            console_height = getattr(self.console, "size").height
+        except Exception:
+            console_height = 0
 
-        self._cached_cow_art = art
-        self._last_cow_change = now
+        if console_height and console_height > 45:
+            fact = random.choice(CAT_FACTS)
+            return art + "\n\n" + fact
+
         return art
 
     def _files_bar(self, width: int = 30) -> Text:
@@ -175,14 +174,6 @@ class BackupDashboard:
 
         # Prepare a pool of quotes; if the console is tall, mix in cat facts.
         quotes_pool = list(stage.get("quotes", []))
-        try:
-            console_height = getattr(self.console, "size").height
-        except Exception:
-            console_height = 0
-
-        if console_height and console_height > 45:
-            quotes_pool.extend(CAT_FACTS)
-
         if not quotes_pool:
             self.cow_quote = "Backing up with purrs..."
         else:
@@ -249,6 +240,11 @@ class BackupDashboard:
             "--delete", "--backup", f"--backup-dir={BACKUP_VERSIONS_DIR}",
             f"--exclude-from={EXCLUDE_FILE}", SOURCE_DIR, DEST_DIR
         ]
+
+        # Add custom rsync options from settings
+        if "rsync_options" in SETTINGS:
+            rsync_cmd.extend(SETTINGS["rsync_options"])
+
         if self.dry_run:
             rsync_cmd.append("--dry-run")
 
@@ -327,71 +323,21 @@ class BackupDashboard:
                 f"[yellow]First 5 error lines:\n" + "\n".join(self.errors[:5]),
                 title="Failure"
             ))
-            # Patch BackupDashboard so cow mascots always appear and cat facts (on tall layouts)
-            # are shown below the cowsay art instead of being mixed into the cowsay quote pool.
-            def _update_slogan_no_catpool(self):
-                """Selects a new cow and quote based on the current progress.
-                Do NOT mix CAT_FACTS into the cowsay quote pool — cat facts will be shown
-                separately below the cowsay art on tall layouts.
-                """
-                stage_key = "stage1"
-                if 25 < self.progress <= 75:
-                    stage_key = "stage2"
-                elif self.progress > 75:
-                    stage_key = "stage3"
-
-                stage = SLOGANS["stages"][stage_key]
-                # always pick an animal for the cowsay art
-                self.cow_character = random.choice(stage["animals"])
-
-                # pick a quote only from the stage quotes (do NOT include CAT_FACTS here)
-                quotes_pool = list(stage.get("quotes", []))
-                if not quotes_pool:
-                    self.cow_quote = "Backing up with purrs..."
-                else:
-                    self.cow_quote = random.choice(quotes_pool)
-
-            def _get_cowsay_art_with_fact(self) -> str:
-                """Return cowsay art (cached per cow_hold_seconds) and, for tall consoles,
-                append a fresh cat fact below the ASCII art (not replacing the cowsay quote).
-                """
-                now = time.time()
-                # generate or use cached cowsay art (only the cowsay output)
-                if self._cached_cow_art and (now - self._last_cow_change) < self.cow_hold_seconds:
-                    art = self._cached_cow_art
-                else:
-                    try:
-                        cowfile_path = os.path.join(COW_PATH, self.cow_character) if "/" in self.cow_character else self.cow_character
-                        cmd = ["cowsay", "-f", cowfile_path, f"({self.progress}%) {self.cow_quote}"]
-                        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
-                        art = result.stdout
-                    except (subprocess.CalledProcessError, FileNotFoundError):
-                        art = f"({self.progress}%) {self.cow_quote}"
-
-                    self._cached_cow_art = art
-                    self._last_cow_change = now
-
-                # Decide whether to append a cat fact below the art (do not include it in the cached art)
-                try:
-                    console_height = getattr(self.console, "size").height
-                except Exception:
-                    console_height = 0
-
-                if console_height and console_height > 45:
-                    fact = random.choice(CAT_FACTS)
-                    return art + "\n\n" + fact
-
-                return art
-
-            # Monkey-patch the class methods
-            BackupDashboard._update_slogan = _update_slogan_no_catpool
-            BackupDashboard._get_cowsay_art = _get_cowsay_art_with_fact
-
-if __name__ == "__main__":
+def main(argv=None):
     parser = argparse.ArgumentParser(description="A delightful kitten-powered backup script.")
     parser.add_argument("--dry-run", action="store_true", help="Perform a trial run with no changes made.")
     parser.add_argument("--dry-run-command", action="store_true", help="Print the rsync command that would be run and exit.")
-    args = parser.parse_args()
+    parser.add_argument("source", nargs="?", help="Source directory to backup.")
+    parser.add_argument("dest", nargs="?", help="Destination directory for backup.")
+    args = parser.parse_args(argv)
+
+    # Override paths if provided
+    if args.source:
+        global SOURCE_DIR
+        SOURCE_DIR = args.source
+    if args.dest:
+        global DEST_DIR
+        DEST_DIR = args.dest
 
     if args.dry_run_command:
         rsync_cmd_str = (f"rsync -a -i --info=progress2,stats --human-readable "
@@ -403,3 +349,7 @@ if __name__ == "__main__":
 
     dashboard = BackupDashboard(dry_run=args.dry_run)
     dashboard.run()
+
+
+if __name__ == "__main__":
+    main()
