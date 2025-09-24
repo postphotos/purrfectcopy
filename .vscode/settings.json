@@ -14,7 +14,7 @@
     ],
     "editor.formatOnSave": true,
     "editor.codeActionsOnSave": {
-        "source.organizeImports": true
+        "source.organizeImports": "always"
     },
     "python.testing.pytestArgs": [
         "tests"

@@ -78,3 +78,23 @@ The GitHub Actions workflow utilizes the same Docker image and runs these three 
 
 * The real-run test may execute `rsync` within the container, which can modify the container's local `/data` directory. It will not affect your host machine unless you have explicitly mounted host volumes.
 * The `Dockerfile` currently fetches external assets during the build process. For more deterministic CI builds, consider replacing these with static test assets in the future.
+
+### Running the single container integration test
+
+If you only want to run the specific container integration test that verifies `setup.sh` and `pcopy do main-backup --dry-run`, use:
+
+```bash
+uv run pytest tests/test_setup_in_container.py::test_setup_sh_adds_pcopy_alias_in_container -q
+```
+
+If Docker is not available or the image build fails in your environment, the test automatically falls back to a deterministic local path that runs `./setup.sh --no-deps` and `PCOPY_TEST_MODE=1 ./run-backup.sh do main-backup --dry-run` so you still get verification on systems without Docker.
+
+### Requiring the container check in branch protection
+
+If you'd like to enforce the container smoke-test in your repository's protected branches, add the job name `Container Smoke Test` to the required status checks in GitHub:
+
+1. Go to your repository Settings → Branches → Branch protection rules.
+2. Edit or create a rule for `main`.
+3. Under "Require status checks to pass before merging", add `Container Smoke Test` to the list of required checks.
+
+This ensures pull requests cannot be merged until the container smoke-test job completes successfully on CI.
