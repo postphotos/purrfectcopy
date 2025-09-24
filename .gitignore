@@ -21,3 +21,4 @@ pip-wheel-metadata/
 .env.*
 *.log
 *pyc
+__pycache__/

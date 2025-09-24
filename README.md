@@ -2,7 +2,7 @@
 
 A delightful, kitten-powered `rsync` backup script with a rich, real-time Terminal User Interface (TUI) built in Python.
 
-Release: v1.0.0 (2025-09-23)
+Release: v0.0.1 (2025-09-23)
 
 ## ✨ Features
 
@@ -23,7 +23,7 @@ Because remembering `rsync -havx--infoprogress2 & afewothers maybe one dash or -
 
 It's our goal to keep this python application at 100% coverage. We also provide the task runner - `run-backup.sh` - to perform your backup work. We also provide a local `setup.sh` to add an alias - `pcopy` - to your `.bashrc`/`.zshrc`.
 
-If you often find yourself scuttling data and are sick of the cat-free, confusing syntax (like the rest of us are!) `pcopy` functions as a fancy alias for `rsync` defaults: A great nice-to-have and makes menial file maintence just a little less awful.
+If you often find yourself scuttling data and are sick of confusing syntax (like the rest of us are!) and need some more cats inyour life, this `pcopy` application acts as a fancy alias for `rsync` defaults: A great nice-to-have and makes menial file maintence just a little less awful.
 
 ## 🛠️ Setup
 
@@ -159,4 +159,4 @@ Progress: [#####....................................] 5%
 
 ## License
 
-This is released under GPL 3.0 etc
+This is released under [GPL 3.0](LICENSE).
