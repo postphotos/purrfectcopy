@@ -18,29 +18,40 @@ done
 
 echo "🐾 Setting up Purrfect Backup..."
 
-# --- Check for uv and optionally install Python deps ---
+PROJECT_DIR="$(pwd)"
+
+# If the project directory is mounted read-only (common in container CI), skip
+# trying to create virtualenvs or install into the project tree. This makes
+# setup.sh safe to run inside read-only containers used by CI smoke-tests.
 if [ "$NO_DEPS" = false ]; then
-    # --- Check for uv ---
-    if ! command -v uv >/dev/null 2>&1; then
-        echo "📦 Installing uv (Python package manager)..."
-        pip install uv
-        if [ $? -ne 0 ]; then
-            echo "❌ Failed to install uv. Please install it manually: pip install uv"
-            exit 1
+    if [ ! -w "$PROJECT_DIR" ]; then
+        echo "⚠️  Project directory $PROJECT_DIR is not writable. Skipping dependency installation and venv creation."
+        echo "If you need to install dependencies, re-run setup.sh from a writable checkout with --no-deps omitted."
+    else
+        # --- Check for uv ---
+        if ! command -v uv >/dev/null 2>&1; then
+            echo "📦 Installing uv (Python package manager)..."
+            if ! python -m pip install --upgrade pip >/dev/null 2>&1 || ! python -m pip install uv >/dev/null 2>&1; then
+                echo "⚠️  Failed to install uv via pip; continuing without uv. You can install it manually later: python -m pip install uv"
+            else
+                echo "✅ uv installed"
+            fi
+        else
+            echo "✅ uv is installed."
+        fi
+
+        # --- Install Python dependencies ---
+        echo "📦 Installing Python dependencies (if possible)..."
+        if command -v uv >/dev/null 2>&1; then
+            if ! uv pip install -r requirements.txt >/dev/null 2>&1; then
+                echo "⚠️  Failed to install Python dependencies with uv; continuing. If you need dependencies, run 'python -m pip install -r requirements.txt' locally."
+            else
+                echo "✅ Dependencies installed."
+            fi
+        else
+            echo "⚠️  'uv' not available; skipping automated dependency installation."
         fi
     fi
-
-    echo "✅ uv is installed."
-
-    # --- Install Python dependencies ---
-    echo "📦 Installing Python dependencies..."
-    uv pip install -r requirements.txt
-    if [ $? -ne 0 ]; then
-        echo "❌ Failed to install Python dependencies."
-        exit 1
-    fi
-
-    echo "✅ Dependencies installed."
 else
     echo "--no-deps supplied; skipping uv and dependency installation."
 fi

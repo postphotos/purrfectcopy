@@ -15,12 +15,13 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
-      - name: Install dependencies (uv)
+      - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install uv
-      - name: Install Python deps
-        run: python -m pip install -r requirements.txt
+          python -m pip install -r requirements.txt
+      - name: Ensure 'build' is available for packaging test
+        run: python -m pip install --upgrade build
+
       - name: Run Pyright
         run: pyright pcopy
       - name: Run tests with coverage (fail if coverage < 100%)
@@ -54,12 +55,10 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
-      - name: Install dependencies (uv)
+      - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install uv
-      - name: Install Python deps
-        run: python -m pip install -r requirements.txt
+          python -m pip install -r requirements.txt
       - name: Build smoke-test image
         run: docker build -f Dockerfile.alpine -t pcopy-smoketest:ci .
       - name: Run container setup+pcopy test
@@ -77,10 +76,10 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
-      - name: Install dependencies (uv)
+      - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install uv
+          python -m pip install -r requirements.txt
       - name: Ensure build env and run full test script
         run: |
           # This runs the same test script used by developers. It will bootstrap

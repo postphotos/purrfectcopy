@@ -76,14 +76,43 @@ elif command -v docker >/dev/null 2>&1; then
 		echo "Building smoke-test Docker image..."
 		docker build -f Dockerfile.alpine -t pcopy-smoketest:latest .
 
-		echo "Smoke-test: dry-run as root"
-		docker run --rm pcopy-smoketest:latest --dry-run
+		# Prepare a fake HOME on the host to mount into the container so setup.sh
+		# can write shell config files (this keeps the project mount read-only
+		# while allowing setup to modify HOME).
+		tmp_home=$(mktemp -d)
+		cat > "$tmp_home/.pcopy-main-backup.yml" <<'YAML'
+		main-backup:
+		  source: "/data/source"
+		  dest: "/data/dest"
+		rsync_options:
+		  - "--verbose"
+		YAML
 
-		echo "Smoke-test: real-run as root"
-		docker run --rm pcopy-smoketest:latest || true
+		echo "Smoke-test: run setup.sh --no-deps inside container and exercise dry-run backup"
+		# Mount project read-only to simulate image contents, provide a writable HOME, and run setup+dry-run backup.
+		docker run --rm \
+		  -e HOME=/home/tester \
+		  -v "$tmp_home":/home/tester:rw \
+		  -v "$(pwd)":/app:ro -w /app \
+		  pcopy-smoketest:latest \
+		  /bin/bash -eux -c "\
+		    /bin/bash ./setup.sh --no-deps && \
+		    PCOPY_TEST_MODE=1 ./run-backup.sh do main-backup --dry-run\
+		  "
 
-		echo "Smoke-test: dry-run as non-root"
-		docker run --rm -e RUN_AS=nonroot pcopy-smoketest:latest --dry-run
+		echo "Smoke-test: also exercise non-root run (dry-run)"
+		docker run --rm \
+		  -e RUN_AS=nonroot -e HOME=/home/tester \
+		  -v "$tmp_home":/home/tester:rw \
+		  -v "$(pwd)":/app:ro -w /app \
+		  pcopy-smoketest:latest \
+		  /bin/bash -eux -c "\
+		    /bin/bash ./setup.sh --no-deps && \
+		    PCOPY_TEST_MODE=1 ./run-backup.sh do main-backup --dry-run\
+		  "
+
+		# Clean up temporary home
+		rm -rf "$tmp_home"
 	else
 		echo "Docker daemon not running; skipping container smoke-tests."
 	fi
