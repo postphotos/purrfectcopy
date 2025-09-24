@@ -20,11 +20,11 @@ jobs:
           python -m pip install --upgrade pip
           pip install uv
       - name: Install Python deps
-        run: uv pip install -r requirements.txt
+        run: python -m pip install -r requirements.txt
       - name: Run Pyright
-        run: uv run pyright pcopy
+        run: pyright pcopy
       - name: Run tests with coverage (fail if coverage < 100%)
-        run: uv run pytest --cov=pcopy --cov-report=term-missing --cov-fail-under=100
+        run: pytest --cov=pcopy --cov-report=term-missing --cov-fail-under=100
       - name: Build Alpine smoke-test container
         run: docker build -f Dockerfile.alpine -t pcopy-smoketest:latest .
 
@@ -59,13 +59,13 @@ jobs:
           python -m pip install --upgrade pip
           pip install uv
       - name: Install Python deps
-        run: uv pip install -r requirements.txt
+        run: python -m pip install -r requirements.txt
       - name: Build smoke-test image
         run: docker build -f Dockerfile.alpine -t pcopy-smoketest:ci .
       - name: Run container setup+pcopy test
         run: |
           # Run only the specific container integration test
-          uv run pytest -q tests/test_setup_in_container.py::test_setup_sh_adds_pcopy_alias_in_container
+          pytest -q tests/test_setup_in_container.py::test_setup_sh_adds_pcopy_alias_in_container
 
   packaging-test:
     name: Packaging + Full Tests
