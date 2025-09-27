@@ -5,6 +5,7 @@
 FROM alpine:3.18
 
 RUN apk add --no-cache rsync bash python3 py3-pip
+RUN pip3 install cowsay
 
 # Create app user
 RUN adduser -D app

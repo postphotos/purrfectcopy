@@ -220,13 +220,11 @@ def run_backup(source: str | None = None, dest: str | None = None, dry_run: bool
             logger.info('Run finished: returncode=%s files_moved=%s duplicates=%s', ret, dash.files_moved_count, getattr(dash, 'duplicates', 0))
         # Persist last run for named config
         if name and persist_last_run:
-            elapsed = time.time() - start_time
-            transferred_bytes = 0
-            errors_count = 0
-            errors_sample = []
-            duplicates = getattr(dash, 'duplicates', 0)
-            dupes_saved = os.path.exists(BACKUP_VERSIONS_DIR / name)
-            _persist_last_run_entry(name, ret, dry_run, dash)
+            try:
+                _persist_last_run_entry_ml(name, ret, dry_run, dash)
+            except Exception:
+                if logger:
+                    logger.exception('Failed to persist last_run for %s in streaming path', name)
         return 0 if ret == 0 or dry_run else ret
     except Exception:
         # As an absolute last-resort, fall back to synchronous run

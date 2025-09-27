@@ -108,3 +108,58 @@ If you'd like to enforce the container smoke-test in your repository's protected
 3. Under "Require status checks to pass before merging", add `Container Smoke Test` to the list of required checks.
 
 This ensures pull requests cannot be merged until the container smoke-test job completes successfully on CI.
+
+## Contributing — running real integration tests
+
+This project includes a set of optional, real integration tests that run inside Docker
+and exercise the full setup and backup flow (non-dry-run). These tests are intentionally
+invasive and therefore opt-in.
+
+## Running the real Docker integration test locally
+
+Prerequisites:
+
+* Docker installed and the daemon running.
+* Enough disk space and time to build the smoke image (the build may take several minutes).
+
+Recommended workflow for local debugging:
+
+1. Build the smoke image quickly:
+
+   ./scripts/build_smoke_image.sh pcopy-smoketest:real Dockerfile.smoke
+
+2. Run a real integration run using the built image and temporary mount points:
+
+   ./scripts/run_real_integration.sh pcopy-smoketest:real /tmp/pcopy-src /tmp/pcopy-dst /tmp/pcopy-home
+
+This will run `setup.sh` inside the container (with `--no-deps`) and then run `pcopy do main-backup`
+inside the image, mounting the provided host directories. The test will then assert that files
+were copied into the destination directory on the host.
+
+## Running via pytest (opt-in)
+
+The test file `tests/test_setup_in_container_full.py` is gated behind the
+`RUN_REAL_INTEGRATION=1` environment variable and also detects Docker availability.
+
+To run it via pytest:
+
+```bash
+    export RUN_REAL_INTEGRATION=1
+    uv run pytest tests/test_setup_in_container_full.py -q
+```
+
+Note: this test builds a docker image and runs containers; it will take time and must be
+run on a machine where Docker is available and permitted.
+
+## CI considerations
+
+If you want to run these real integration tests in CI, add a job on a Docker-capable runner
+and set `RUN_REAL_INTEGRATION=1`. Be sure to allow a long timeout and sufficient disk space.
+A sample GitHub Actions workflow is included in `.github/workflows/real-integration.yml` but
+it is intended as a starting point — you may need to adapt it to your CI environment.
+
+## Safety
+
+These tests are designed to perform side-effects in temporary directories and remove
+built images at the end. Nevertheless, they are invasive and may fail on restricted
+or resource-limited environments, which is why they are explicitly opt-in.

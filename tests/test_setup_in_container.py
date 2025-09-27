@@ -16,8 +16,6 @@ def docker_available() -> bool:
 
 
 @pytest.mark.integration
-@pytest.mark.skipif(os.environ.get('RUN_INTEGRATION_TESTS') != '1', reason="integration tests disabled by default; set RUN_INTEGRATION_TESTS=1 to run")
-@pytest.mark.skipif(not docker_available(), reason="docker is not available")
 def test_setup_sh_adds_pcopy_alias_in_container(tmp_path: Path):
     """Build the smoke-test image, run a container with a fake $HOME containing the sample YAML,
     run `setup.sh` inside the container, and assert the shell config file contains the `pcopy()` function.
@@ -117,6 +115,42 @@ rsync_options:
                 pytest.fail("Local fallback: no shell config created; setup.sh did not write .bashrc or .zshrc")
             assert "pcopy()" in content, "pcopy() not found in shell config in local fallback"
             return
+    except FileNotFoundError:
+        # docker executable not found: behave like build failure and use the local fallback
+        safe_path = "/usr/bin:/bin:/usr/sbin:/sbin"
+        local_setup = subprocess.run([
+            "env",
+            f"PATH={safe_path}",
+            "bash",
+            "--noprofile",
+            "--norc",
+            "-c",
+            f'HOME={str(fake_home)} /bin/bash ./setup.sh --no-deps',
+        ], cwd=str(project_root), capture_output=True, text=True)
+        if local_setup.returncode != 0:
+            pytest.fail(f"docker build failed (docker missing) and local setup fallback failed:\nLOCAL STDOUT:\n{local_setup.stdout}\nLOCAL STDERR:\n{local_setup.stderr}")
+        local_pcopy = subprocess.run([
+            "env",
+            f"PATH={safe_path}",
+            "bash",
+            "--noprofile",
+            "--norc",
+            "-c",
+            f'PCOPY_TEST_MODE=1 HOME={str(fake_home)} /bin/bash ./run-backup.sh do main-backup --dry-run',
+        ], cwd=str(project_root), capture_output=True, text=True)
+        assert local_pcopy.returncode == 0, f"local pcopy test failed:\nSTDOUT:\n{local_pcopy.stdout}\nSTDERR:\n{local_pcopy.stderr}"
+        assert ("Dry Run" in local_pcopy.stdout) or ("dry-run" in local_pcopy.stdout) or ("Dry run" in local_pcopy.stdout)
+        zshrc = fake_home / ".zshrc"
+        bashrc = fake_home / ".bashrc"
+        content = ""
+        if zshrc.exists():
+            content = zshrc.read_text()
+        elif bashrc.exists():
+            content = bashrc.read_text()
+        else:
+            pytest.fail("Local fallback: no shell config created; setup.sh did not write .bashrc or .zshrc")
+        assert "pcopy()" in content, "pcopy() not found in shell config in local fallback"
+        return
     except OSError as e:
         pytest.fail(f"docker not usable: {e}")
 
