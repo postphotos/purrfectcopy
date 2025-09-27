@@ -1,0 +1,20 @@
+# Minimal, cache-friendly smoke-test image
+# Purpose: Provide a small base image that installs runtime deps and
+# runs the app in a fast, reproducible way for CI smoke tests.
+
+FROM alpine:3.18
+
+RUN apk add --no-cache rsync bash python3 py3-pip
+
+# Create app user
+RUN adduser -D app
+WORKDIR /app
+
+# Copy only necessary files to make build cacheable
+COPY requirements.txt ./
+RUN pip3 install -r requirements.txt
+
+# Copy the application code; keep this late so earlier layers cache
+COPY . /app
+
+ENTRYPOINT ["/bin/bash", "-c", "PCOPY_TEST_MODE=1 ./run-backup.sh --dry-run"]

@@ -11,8 +11,18 @@ if [ "${PCOPY_TEST_MODE:-0}" != "1" ]; then
   # Ensure we are running as root (for rsync permissions)
   if [ "$EUID" -ne 0 ]; then
     echo "😿 This script needs root privileges for rsync. Re-running with sudo..."
-    # Re-execute this script with sudo, passing all arguments along
-    exec sudo "$0" "${@}"
+    # Determine the absolute path to this script so sudo invokes the
+    # same file rather than resolving an unrelated 'pcopy' on PATH.
+    SCRIPT_PATH="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)/$(basename "${BASH_SOURCE[0]:-$0}")"
+    # Try to preserve the caller's HOME for the sudo'ed invocation so the
+    # user's settings (e.g., ~/.pcopy-main-backup.yml) remain accessible.
+    if sudo --version >/dev/null 2>&1; then
+        # Prefer the explicit preserve-env form when supported
+        exec sudo --preserve-env=HOME "$SCRIPT_PATH" "${@}"
+    else
+        # Fallback: use env to inject HOME into the sudo'd environment
+        exec sudo env HOME="$HOME" "$SCRIPT_PATH" "${@}"
+    fi
   fi
 else
   echo "PCOPY_TEST_MODE=1: skipping sudo/dependency enforcement for tests"

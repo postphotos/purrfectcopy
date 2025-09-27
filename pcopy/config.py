@@ -35,6 +35,8 @@ def _load_slogans() -> Dict[str, Any]:
                 if s or cf:
                     data['slogans'] = s or []
                     data['cat_facts'] = cf or []
+                    # Ensure modern key 'quotes' is present for UI code
+                    data['quotes'] = list(data.get('slogans') or [])
                     return data
     except Exception:
         # ignore; fallback to file-based slogans

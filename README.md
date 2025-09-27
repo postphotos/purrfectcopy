@@ -119,6 +119,48 @@ You can pass flags to the launcher, and they will be forwarded to the Python app
 - **Backup Paths:** To change the source or destination directories, edit the "CUSTOMIZE YOUR PATHS HERE" section at the top of `app.py`.
 - **Slogans & Characters:** To add or change any of the fun text, edit the `slogans.json` file. You can even add new `.cow` files to the `cows/` directory and reference them in the JSON file!
 
+## Developer / Quick commands
+
+For contributors and maintainers:
+
+- Run the deterministic demo (fast, CI-friendly):
+
+```bash
+PCOPY_TEST_MODE=1 ./scripts/demo-clean.sh
+```
+
+- Run the full interactive demo (may show runpy warning in some shells):
+
+```bash
+PCOPY_TEST_MODE=1 ./scripts/demo.sh
+```
+
+- Run the test suite (recommended in a virtualenv):
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+pytest -q
+```
+
+- Run tests with coverage and a terminal report:
+
+```bash
+pytest --cov=pcopy --cov-report=term-missing
+```
+
+- Build and run the smoke-test Docker image (if Docker is available):
+
+```bash
+docker build -f Dockerfile.alpine -t pcopy-smoketest:latest .
+docker run --rm pcopy-smoketest:latest
+```
+
+- Convenience Makefile targets are available: `make demo`, `make demo-clean`, `make test`, `make coverage`.
+
+This project aims for 100% coverage and provides a small coverage helper test for unreachable branches; see `tests/test_coverage_helpers.py` for details.
+
 ## Docker-based smoke-test
 
 We provide `Dockerfile.alpine` as a lightweight smoke-test image that installs system dependencies (rsync, cowsay), prepares a small sample source tree, and runs `app.py` in `--dry-run` mode. This is used by CI to validate the runtime behavior in a container similar to minimal Linux systems.
@@ -131,6 +173,19 @@ docker run --rm pcopy-smoketest:latest
 ```
 
 The smoke-test runs the app in dry-run mode by default so it won't modify your host files.
+
+## Integration tests (Docker)
+
+A small Docker-based smoke-test exists to validate `setup.sh` inside a container. These tests are heavy and disabled by default to keep the normal test run fast.
+
+To run the integration test (requires Docker and takes longer):
+
+```bash
+# opt-in to integration tests
+RUN_INTEGRATION_TESTS=1 pytest -q tests/test_setup_in_container.py::test_setup_sh_adds_pcopy_alias_in_container
+# or use the Makefile target
+make integration-test
+```
 
 ## Sample output
 
